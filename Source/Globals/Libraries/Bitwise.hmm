@@ -15,5 +15,3 @@ Library "Bitwise" by "Hyper"
         return (@base & (isOffsetBitIndex ? (1L << (int)offset) : offset)) != 0;
     }
 }
-
-

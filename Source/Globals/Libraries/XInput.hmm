@@ -8,16 +8,16 @@ Library "XInput" by "Hyper"
     using System.Runtime.InteropServices;
 
     [DllImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
-    public extern int XInputGetState(int dwUserIndex, ref State pState);
+    public extern int XInputGetState(int in_dwUserIndex, ref State in_pState);
     
     [DllImport("xinput1_4.dll", EntryPoint = "XInputSetState")]
-    public extern int XInputSetState(int dwUserIndex, ref Vibration pVibration);
+    public extern int XInputSetState(int in_dwUserIndex, ref Vibration in_pVibration);
 
     public const short XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE = 7849;
     public const short XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE = 8689;
 
-    public static float LeftMotorSpeed = 0.0f;
-    public static float RightMotorSpeed = 0.0f;
+    private static float _leftMotorSpeed = 0.0f;
+    private static float _rightMotorSpeed = 0.0f;
 
     [Flags]
     public enum Buttons : ushort
@@ -63,34 +63,34 @@ Library "XInput" by "Hyper"
         public ushort wLeftMotorSpeed;
         public ushort wRightMotorSpeed;
 
-        public Vibration(ushort leftMotorSpeed, ushort rightMotorSpeed)
+        public Vibration(ushort in_leftMotorSpeed, ushort in_rightMotorSpeed)
         {
-            wLeftMotorSpeed = leftMotorSpeed;
-            wRightMotorSpeed = rightMotorSpeed;
+            wLeftMotorSpeed = in_leftMotorSpeed;
+            wRightMotorSpeed = in_rightMotorSpeed;
 
-            LeftMotorSpeed = leftMotorSpeed / 65535.0f;
-            RightMotorSpeed = rightMotorSpeed / 65535.0f;
+            _leftMotorSpeed = in_leftMotorSpeed / 65535.0f;
+            _rightMotorSpeed = in_rightMotorSpeed / 65535.0f;
         }
 
-        public Vibration(float leftMotorSpeed, float rightMotorSpeed)
+        public Vibration(float in_leftMotorSpeed, float in_rightMotorSpeed)
         {
-            wLeftMotorSpeed = MathHelpers.FloatPercentToRange<ushort>(leftMotorSpeed);
-            wRightMotorSpeed = MathHelpers.FloatPercentToRange<ushort>(rightMotorSpeed);
+            wLeftMotorSpeed = MathHelpers.FloatPercentToRange<ushort>(in_leftMotorSpeed);
+            wRightMotorSpeed = MathHelpers.FloatPercentToRange<ushort>(in_rightMotorSpeed);
 
-            LeftMotorSpeed = leftMotorSpeed;
-            RightMotorSpeed = rightMotorSpeed;
+            _leftMotorSpeed = in_leftMotorSpeed;
+            _rightMotorSpeed = in_rightMotorSpeed;
         }
 
-        public Vibration(ushort motorSpeed)
+        public Vibration(ushort in_motorSpeed)
         {
-            wLeftMotorSpeed = wRightMotorSpeed = motorSpeed;
-            LeftMotorSpeed = RightMotorSpeed = motorSpeed / 65535.0f;
+            wLeftMotorSpeed = wRightMotorSpeed = in_motorSpeed;
+            _leftMotorSpeed = _rightMotorSpeed = in_motorSpeed / 65535.0f;
         }
 
-        public Vibration(float motorSpeed)
+        public Vibration(float in_motorSpeed)
         {
-            wLeftMotorSpeed = wRightMotorSpeed = MathHelpers.FloatPercentToRange<ushort>(motorSpeed);
-            LeftMotorSpeed = RightMotorSpeed = motorSpeed;
+            wLeftMotorSpeed = wRightMotorSpeed = MathHelpers.FloatPercentToRange<ushort>(in_motorSpeed);
+            _leftMotorSpeed = _rightMotorSpeed = in_motorSpeed;
         }
     }
 
@@ -104,12 +104,12 @@ Library "XInput" by "Hyper"
         return pState;
     }
 
-    public void SetState(Vibration pVibration)
+    public void SetState(Vibration in_vibration)
     {
-        XInputSetState(0, ref pVibration);
+        XInputSetState(0, ref in_vibration);
     }
 
-    public Vector2 GetAnalog(int analogIndex, bool testDeadzone = true)
+    public Vector2 GetAnalog(int in_analogIndex, bool in_isTestDeadzone = true)
     {
         var pState = GetState();
 
@@ -118,7 +118,7 @@ Library "XInput" by "Hyper"
 
         Vector2 v = Vector2.Zero;
 
-        switch (analogIndex)
+        switch (in_analogIndex)
         {
             case 0:
                 v = new Vector2(pState.Value.Gamepad.sThumbLX / 32767.0f, pState.Value.Gamepad.sThumbLY / 32767.0f);
@@ -129,9 +129,9 @@ Library "XInput" by "Hyper"
                 break;
         }
 
-        if (testDeadzone)
+        if (in_isTestDeadzone)
         {
-            v = IsAnalogNeutral(analogIndex)
+            v = IsAnalogNeutral(in_analogIndex)
                 ? Vector2.Zero
                 : v;
         }
@@ -139,25 +139,25 @@ Library "XInput" by "Hyper"
         return v;
     }
 
-    // Use Sonic.Input for keyboard parity!
-    public bool IsButtonDown(Buttons buttons)
+    // Use Player.Input for keyboard parity!
+    public bool IsButtonDown(Buttons in_buttons)
     {
         var pState = GetState();
 
         if (pState == null)
             return false;
 
-        return (pState.Value.Gamepad.wButtons & buttons) != 0;
+        return (pState.Value.Gamepad.wButtons & in_buttons) != 0;
     }
 
-    public float GetTrigger(int triggerIndex)
+    public float GetTrigger(int in_triggerIndex)
     {
         var pState = GetState();
 
         if (pState == null)
             return 0;
 
-        switch (triggerIndex)
+        switch (in_triggerIndex)
         {
             case 0:
                 return pState.Value.Gamepad.bLeftTrigger / 255.0f;
@@ -169,14 +169,14 @@ Library "XInput" by "Hyper"
         return 0;
     }
 
-    public bool IsAnalogNeutral(int analogIndex)
+    public bool IsAnalogNeutral(int in_analogIndex)
     {
         var pState = GetState();
 
         if (pState == null)
             return true;
 
-        switch (analogIndex)
+        switch (in_analogIndex)
         {
             case 0:
             {
@@ -204,24 +204,29 @@ Library "XInput" by "Hyper"
         return true;
     }
 
-    public void SetVibration(float value)
+    public Vibration GetVibration()
     {
-        SetState(new Vibration(MathHelpers.FloatPercentToRange<ushort>(value)));
+        return new Vibration(_leftMotorSpeed, _rightMotorSpeed);
     }
 
-    public void SetVibration(int motorIndex, float value)
+    public void SetVibration(float in_value)
     {
-        switch (motorIndex)
+        SetState(new Vibration(in_value));
+    }
+
+    public void SetVibration(int in_motorIndex, float in_value)
+    {
+        switch (in_motorIndex)
         {
             case 0:
             {
-                SetState(new Vibration(value, RightMotorSpeed));
+                SetState(new Vibration(in_value, _rightMotorSpeed));
                 break;
             }
 
             case 1:
             {
-                SetState(new Vibration(LeftMotorSpeed, value));
+                SetState(new Vibration(_leftMotorSpeed, in_value));
                 break;
             }
         }

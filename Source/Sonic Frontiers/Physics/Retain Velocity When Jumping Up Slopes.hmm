@@ -1,7 +1,8 @@
 Code "Retain Velocity When Jumping Up Slopes" in "Physics" by "Weezley" does "Retains the current ground velocity when jumping from a steep slope."
 //
-    #include "ReflectionHelpers" noemit
+    #include "Reflection" noemit
 
+    #lib "Reflection"
     #lib "SonicParameters"
 //
 {

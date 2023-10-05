@@ -1,0 +1,62 @@
+Code "Character Swapper (experimental)" in "Gameplay" by "Hyper, Skyth & Gordon Ramsay" does
+/*
+Allows switching between Sonic, Amy, Knuckles and Tails using hotkeys.
+
+Controller Layout;
+- RS + D-Pad Up - switch to Sonic
+- RS + D-Pad Right - switch to Amy
+- RS + D-Pad Down - switch to Knuckles
+- RS + D-Pad Left - switch to Tails
+
+Keyboard Layout;
+- 1 - switch to Sonic
+- 2 - switch to Amy
+- 3 - switch to Knuckles
+- 4 - switch to Tails
+
+Known issues;
+- Characters other than Sonic will have the lowest stats and an incomplete skill tree outside of Another Story.
+- The hotkeys to switch characters using the D-Pad currently only works with Xbox controllers.
+*/
+//
+    #lib "Player"
+    #lib "XInput"
+
+    using System.Diagnostics;
+    using System.Runtime.InteropServices;
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+    
+    static bool IsButtonDownSpecial(XInput.Buttons buttons)
+    {
+        if (!XInput.IsButtonDown(XInput.Buttons.RIGHT_THUMB))
+            return false;
+
+        return XInput.IsButtonDown(buttons);
+    }
+//
+{
+    if (GetForegroundWindow() != Process.GetCurrentProcess().MainWindowHandle)
+        return;
+    
+    if ((GetAsyncKeyState(HMMCodes.Keys.D1) & 0x8000) != 0 || IsButtonDownSpecial(XInput.Buttons.DPAD_UP))
+    {
+        Player.SetPlayerType(Player.PlayerType.Sonic);
+    }
+
+    if ((GetAsyncKeyState(HMMCodes.Keys.D2) & 0x8000) != 0 || IsButtonDownSpecial(XInput.Buttons.DPAD_RIGHT))
+    {
+        Player.SetPlayerType(Player.PlayerType.Amy);
+    }
+
+    if ((GetAsyncKeyState(HMMCodes.Keys.D3) & 0x8000) != 0 || IsButtonDownSpecial(XInput.Buttons.DPAD_DOWN))
+    {
+        Player.SetPlayerType(Player.PlayerType.Knuckles);
+    }
+
+    if ((GetAsyncKeyState(HMMCodes.Keys.D4) & 0x8000) != 0 || IsButtonDownSpecial(XInput.Buttons.DPAD_LEFT))
+    {
+        Player.SetPlayerType(Player.PlayerType.Tails);
+    }
+}
