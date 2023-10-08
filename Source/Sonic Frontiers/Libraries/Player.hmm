@@ -138,44 +138,43 @@ Library "Player" by "Hyper, NM, Ahremic & Skyth"
         _isInitialised = true;
     }
 
-    public (PlayerType Type, long pGameObject) GetPlayer()
-    {
-        var pSonic = GameManager.GetGameObject("Sonic");
-
-        if (pSonic != null)
-            return (PlayerType.Sonic, (long)pSonic);
-        
-        var pPlayerAmy = GameManager.GetGameObject("PlayerAmy");
-
-        if (pPlayerAmy != null)
-            return (PlayerType.Amy, (long)pPlayerAmy);
-        
-        var pPlayerKnuckles = GameManager.GetGameObject("PlayerKnuckles");
-
-        if (pPlayerKnuckles != null)
-            return (PlayerType.Knuckles, (long)pPlayerKnuckles);
-        
-        var pPlayerTails = GameManager.GetGameObject("PlayerTails");
-
-        if (pPlayerTails != null)
-            return (PlayerType.Tails, (long)pPlayerTails);
-        
-        return (PlayerType.Unknown, 0);
-    }
-
     public PlayerType GetPlayerType()
     {
-        return GetPlayer().Type;
+        var pLevelInfo = GameManager.GetService<LevelInfo>();
+
+        if (pLevelInfo == null)
+            return PlayerType.Unknown;
+
+        return (PlayerType)pLevelInfo->PlayerInfo[0]->CharacterIndex;
     }
 
     public Data* GetPlayerData()
     {
-        var player = GetPlayer();
+        var pGameObject = 0L;
 
-        if (player.Type == PlayerType.Unknown || player.pGameObject == 0)
+        switch (GetPlayerType())
+        {
+            case PlayerType.Sonic:
+                pGameObject = (long)GameManager.GetGameObject("Sonic");
+                break;
+
+            case PlayerType.Amy:
+                pGameObject = (long)GameManager.GetGameObject("PlayerAmy");
+                break;
+
+            case PlayerType.Knuckles:
+                pGameObject = (long)GameManager.GetGameObject("PlayerKnuckles");
+                break;
+
+            case PlayerType.Tails:
+                pGameObject = (long)GameManager.GetGameObject("PlayerTails");
+                break;
+        }
+
+        if (pGameObject == 0)
             return null;
         
-        return (Data*)player.pGameObject;
+        return (Data*)pGameObject;
     }
 
     public PlayerHsmContext* GetPlayerContext()
