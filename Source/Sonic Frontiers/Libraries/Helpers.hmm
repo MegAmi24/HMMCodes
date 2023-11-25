@@ -11,15 +11,20 @@ Library "Helpers" by "Hyper & Sajid"
     /// </summary>
     /// <example>
     /// <code><![CDATA[
-    /// Code
-    /// //
+    /// Library
+    /// {
     ///     #include "Helpers" noemit
     ///     
     ///     UNMANAGED_FUNCTION(void, MyUnmanagedFunction, string in_str)
-    /// //
-    /// {
-    ///     // This can be used for mid-asm hooks to call your own functions from the game code.
-    ///     var ptrToMyUnmanagedFunction = GET_UNMANAGED_FUNCTION_PTR(MyUnmanagedFunction);
+    ///     {
+    ///         Console.WriteLine("Hello from native code!");
+    ///     }
+    ///     
+    ///     public void Init()
+    ///     {
+    ///         // This can be used for mid-asm hooks to call your own functions from the game code.
+    ///         var ptrToMyUnmanagedFunction = GET_UNMANAGED_FUNCTION_PTR(MyUnmanagedFunction);
+    ///     }
     /// }
     /// ]]></code>
     /// </example>
@@ -154,6 +159,22 @@ Library "Helpers" by "Hyper & Sajid"
                     return (in_type*)p_##in_name; \
             } \
         }
+
+    #define MAKE_GENERIC_API(in_functionName) \
+        public T* in_functionName<T>() where T : unmanaged \
+        { \
+            var name = Helpers.GetInternalName(typeof(T)); \
+\
+            return (T*)in_functionName(string.IsNullOrEmpty(name) ? typeof(T).Name : name); \
+        } \
+
+    #define MAKE_STATIC_GENERIC_API(in_functionName) \
+        public static T* in_functionName<T>() where T : unmanaged \
+        { \
+            var name = Helpers.GetInternalName(typeof(T)); \
+\
+            return (T*)in_functionName(string.IsNullOrEmpty(name) ? typeof(T).Name : name); \
+        } \
 
     /// <summary>
     /// Gets a pointer to an ANSI string.
