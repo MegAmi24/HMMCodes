@@ -2,11 +2,14 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
 {
     #include "Helpers" noemit
 
+    #import "GameTypes"
     #import "Collections"
     #import "GOComponents"
 
     #lib "Helpers"
     #lib "GameManager"
+    #lib "MessageManager"
+    #lib "HandleManagerBase"
     #lib "Memory"
 
     using System.Runtime.InteropServices;
@@ -15,12 +18,24 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
     /// A struct representation of `hh::game::GameObject`.
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 0x258, Pack = 0x10)]
-    public struct Data
+    public struct Data : IMessenger
     {
+        DEFINE_BASE_PROPERTY(void*, Allocator)
+        DEFINE_BASE_PROPERTY(int, RefCount)
+        DEFINE_BASE_PROPERTY(int, Handle)
+        DEFINE_BASE_PROPERTY(MessageManager.Data*, MessageManager)
+
+        [FieldOffset(0x00)] public Messenger Base;
+
         /// <summary>
         /// A pointer to an instance of `app::GameManager`.
         /// </summary>
-        [FieldOffset(0x18)] public GameManager.Data* pGameManager;
+        [FieldOffset(0x48)] public GameManager.Data* pGameManager;
+
+        /// <summary>
+        /// The flags for this game object.
+        /// </summary>
+        [FieldOffset(0x30)] public byte Flags;
 
         /// <summary>
         /// An array of pointers to `hh::game::GOComponent` instances.
@@ -33,6 +48,14 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
         [FieldOffset(0xB8)] public Helpers.UnmanagedString Name;
 
         public override string ToString() => Name.ToString();
+
+        /// <summary>
+        /// Destroys this game object.
+        /// </summary>
+        public void Kill()
+        {
+            Flags |= 1;
+        }
     }
 
     /// <summary>

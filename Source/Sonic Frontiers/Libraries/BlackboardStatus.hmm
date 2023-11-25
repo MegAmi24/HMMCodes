@@ -1,6 +1,8 @@
-Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::BlackboardStatus` from Sonic Frontiers."
+Library "BlackboardStatus" by "Hyper, ĐeäTh & Sora" does "Provides access to `app::player::BlackboardStatus` from Sonic Frontiers."
 {
     #import "Blackboard"
+
+    #lib "Player"
 
     /// <summary>
     /// Determines whether a state flag is set.
@@ -19,6 +21,29 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     /// <param name="in_name">The name of an enum member from the `StateFlags` enum.</param>
     /// <returns>A boolean value representing whether the state flag is set.</returns>
     #define IS_STATE_FLAG(in_name) (BlackboardStatus.Get() != null && (BlackboardStatus.Get()->StateFlags & (1L << (int)BlackboardStatus.StateFlags.in_name)) != 0)
+
+    /// <summary>
+    /// Sets a state flag.
+    /// </summary>
+    /// <example>
+    /// <code><![CDATA[
+    /// Code
+    /// //
+    ///     #include "BlackboardStatus" noemit
+    /// //
+    /// {
+    ///     SET_STATE_FLAG(IsBoost, true);
+    /// }
+    /// ]]></code>
+    /// </example>
+    /// <param name="in_name">The name of an enum member from the `StateFlags` enum.</param>
+    /// <param name="in_isEnabled">The enabled state of the specified flag.</param>
+    #define SET_STATE_FLAG(in_name, in_isEnabled) \
+        if (BlackboardStatus.Get() != null) \
+            if (in_isEnabled) \
+                BlackboardStatus.Get()->StateFlags |= (1U << (byte)((uint)BlackboardStatus.StateFlags.in_name & 0x3F)); \
+            else \
+                BlackboardStatus.Get()->StateFlags &= ~(1U << (byte)((uint)BlackboardStatus.StateFlags.in_name & 0x3F));
     
     /// <summary>
     /// Determines whether a combat flag is set.
@@ -39,6 +64,29 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     #define IS_COMBAT_FLAG(in_name) (BlackboardStatus.Get() != null && (BlackboardStatus.Get()->CombatFlags & (1L << (int)BlackboardStatus.CombatFlags.in_name)) != 0)
 
     /// <summary>
+    /// Sets a combat flag.
+    /// </summary>
+    /// <example>
+    /// <code><![CDATA[
+    /// Code
+    /// //
+    ///     #include "BlackboardStatus" noemit
+    /// //
+    /// {
+    ///     SET_COMBAT_FLAG(IsPerfectParry, true);
+    /// }
+    /// ]]></code>
+    /// </example>
+    /// <param name="in_name">The name of an enum member from the `CombatFlags` enum.</param>
+    /// <param name="in_isEnabled">The enabled state of the specified flag.</param>
+    #define SET_COMBAT_FLAG(in_name, in_isEnabled) \
+        if (BlackboardStatus.Get() != null) \
+            if (in_isEnabled) \
+                BlackboardStatus.Get()->CombatFlags |= (1U << (byte)((uint)BlackboardStatus.CombatFlags.in_name & 0x3F)); \
+            else \
+                BlackboardStatus.Get()->CombatFlags &= ~(1U << (byte)((uint)BlackboardStatus.CombatFlags.in_name & 0x3F));
+
+    /// <summary>
     /// Determines whether a world flag is set.
     /// </summary>
     /// <example>
@@ -55,6 +103,29 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     /// <param name="in_name">The name of an enum member from the `WorldFlags` enum.</param>
     /// <returns>A boolean value representing whether the world flag is set.</returns>
     #define IS_WORLD_FLAG(in_name) (BlackboardStatus.Get() != null && (BlackboardStatus.Get()->WorldFlags & (1L << (int)BlackboardStatus.WorldFlags.in_name)) != 0)
+
+    /// <summary>
+    /// Sets a world flag.
+    /// </summary>
+    /// <example>
+    /// <code><![CDATA[
+    /// Code
+    /// //
+    ///     #include "BlackboardStatus" noemit
+    /// //
+    /// {
+    ///     SET_WORLD_FLAG(IsNoClip, true);
+    /// }
+    /// ]]></code>
+    /// </example>
+    /// <param name="in_name">The name of an enum member from the `WorldFlags` enum.</param>
+    /// <param name="in_isEnabled">The enabled state of the specified flag.</param>
+    #define SET_WORLD_FLAG(in_name, in_isEnabled) \
+        if (BlackboardStatus.Get() != null) \
+            if (in_isEnabled) \
+                BlackboardStatus.Get()->WorldFlags |= (1U << (byte)((uint)BlackboardStatus.WorldFlags.in_name & 0x3F)); \
+            else \
+                BlackboardStatus.Get()->WorldFlags &= ~(1U << (byte)((uint)BlackboardStatus.WorldFlags.in_name & 0x3F));
 
     using System.Runtime.InteropServices;
     
@@ -121,6 +192,9 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     /// <returns>A boolean value representing whether the current player is in their Super form.</returns>
     public bool IsSuper()
     {
+        if (Player.GetPlayerType() != Player.PlayerType.Sonic)
+            return false;
+        
         var pBlackboardStatus = Get();
 
         if (pBlackboardStatus == null)
@@ -132,7 +206,7 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     /// <summary>
     /// An enum containing known state flags.
     /// </summary>
-    public enum StateFlags
+    public enum StateFlags : uint
     {
         /// <summary>
         /// The player is boosting.
@@ -248,7 +322,7 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     /// <summary>
     /// An enum containing known combat flags.
     /// </summary>
-    public enum CombatFlags
+    public enum CombatFlags : uint
     {
         /// <summary>
         /// The player is using perfect parry.
@@ -259,7 +333,7 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
     /// <summary>
     /// An enum containing known world flags.
     /// </summary>
-    public enum WorldFlags
+    public enum WorldFlags : uint
     {
         /// <summary>
         /// The player is dead.
@@ -270,6 +344,11 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
         /// The player has taken damage or has been repelled by an enemy's shield.
         /// </summary>
         IsDamagedOrRepelled = 0x02,
+
+        /// <summary>
+        /// The player no longer has control.
+        /// </summary>
+        IsOutOfControl = 0x07,
 
         /// <summary>
         /// The player is in an auto run section.
@@ -290,6 +369,11 @@ Library "BlackboardStatus" by "Hyper" does "Provides access to `app::player::Bla
         /// The player is standing on collision pertaining to the height map.
         /// </summary>
         IsHeightMapCollision = 0x37,
+
+        /// <summary>
+        /// Determines whether the player can clip through terrain (requires flag at bit index 14 to be set).
+        /// </summary>
+        IsNoClip = 0x38,
 
         /// <summary>
         /// The player is in battle.
