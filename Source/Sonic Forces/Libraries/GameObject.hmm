@@ -14,7 +14,7 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
     /// <summary>
     /// A struct representation of `hh::game::GameObject`.
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size = 0x258, Pack = 0x10)]
+    [StructLayout(LayoutKind.Explicit, Size = 0x1C0, Pack = 0x10)]
     public struct Data
     {
         /// <summary>
@@ -37,6 +37,11 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
         /// </summary>
         [FieldOffset(0xB0)] public Helpers.UnmanagedString Name;
 
+        /// <summary>
+        /// A pointer to an instance of `hh::game::WorldObjectStatus`.
+        /// </summary>
+        [FieldOffset(0x1A8)] public WorldObjectStatus* pWorldObjectStatus;
+
         public override string ToString() => Name.ToString();
 
         /// <summary>
@@ -46,6 +51,15 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
         {
             Flags |= 1;
         }
+    }
+
+    /// <summary>
+    /// A struct representation of `hh::game::WorldObjectStatus`.
+    /// </summary>
+    [StructLayout(LayoutKind.Explicit)]
+    public struct WorldObjectStatus
+    {
+        [FieldOffset(0x14)] public int Status;
     }
 
     /// <summary>
@@ -85,6 +99,16 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
         return null;
     }
 
+    public bool TryGetGOC(Data* in_pGameObject, string in_name, GOComponent* out_pGOC)
+    {
+        out_pGOC = GetGOC(in_pGameObject, in_name);
+
+        if (out_pGOC == null)
+            return false;
+
+        return true;
+    }
+
     /// <summary>
     /// Gets an instance of `hh::game::GOComponent` obtained by the input `hh::game::GameObject` instance.
     /// </summary>
@@ -110,5 +134,15 @@ Library "GameObject" by "Hyper, ĐeäTh & Sajid"
         var name = Helpers.GetInternalName(typeof(T));
         
         return (T*)(long)GetGOC(in_pGameObject, string.IsNullOrEmpty(name) ? typeof(T).Name : name);
+    }
+
+    public bool TryGetGOC<T>(Data* in_pGameObject, out T* out_pGOC) where T : unmanaged
+    {
+        out_pGOC = GetGOC<T>(in_pGameObject);
+
+        if (out_pGOC == null)
+            return false;
+
+        return true;
     }
 }
